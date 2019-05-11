@@ -2,11 +2,10 @@
 
 namespace App;
 
-use App\Game;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class GameSet extends Model
+class Settings extends Model
 {
     //
 	public $guarded = [];
@@ -15,9 +14,4 @@ class GameSet extends Model
 	{
 		return $this->belongsTo(User::class);
 	}
-
-    public function games()
-    {
-    	return $this->hasMany(Game::class);
-    }
 }

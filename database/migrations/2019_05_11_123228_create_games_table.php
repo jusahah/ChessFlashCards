@@ -14,9 +14,11 @@ class CreateGamesTable extends Migration
     public function up()
     {
         Schema::create('games', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->bigIncrements('id');
+            $table->string('hash')->unique();
             $table->unsignedInteger('user_id')->index();
             $table->unsignedInteger('game_set_id')->index();
+            $table->unsignedInteger('game_group_id')->index()->nullable();
             $table->text('pgn');
             $table->timestamps();
         });

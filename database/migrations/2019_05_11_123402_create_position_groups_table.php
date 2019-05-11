@@ -15,7 +15,6 @@ class CreatePositionGroupsTable extends Migration
     {
         Schema::create('position_groups', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->timestamps();
         });
     }
 

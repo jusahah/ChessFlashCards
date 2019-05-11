@@ -11,5 +11,7 @@ class Move extends Pivot
 
     public $guarded = [];
 
-    
+    protected $table = "moves";
+
+
 }
