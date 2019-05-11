@@ -17,6 +17,8 @@ class CreateUsersTable extends Migration
             $table->increments('id');
             $table->string('name');
             $table->string('email')->unique();
+
+            // Not used when using social auth.
             //$table->string('password');
 
             // Generated after successful OAuth login. Passed to frontend.
