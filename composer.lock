@@ -4,8 +4,42 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "16cf96fb4804a88c4aa471b3e98735b7",
+    "content-hash": "e86d325c8b9b1a0f60146a5c279fa82b",
     "packages": [
+        {
+            "name": "chesszebra/pgn-splitter",
+            "version": "1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/chesszebra/pgn-splitter.git",
+                "reference": "67fa14b2a49af9242caf4da6e5bfd65955080cec"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/chesszebra/pgn-splitter/zipball/67fa14b2a49af9242caf4da6e5bfd65955080cec",
+                "reference": "67fa14b2a49af9242caf4da6e5bfd65955080cec",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.3",
+                "squizlabs/php_codesniffer": "^3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ChessZebra\\Chess\\Pgn\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A PHP library to split PGN files into chunks per game or per section.",
+            "time": "2018-05-12T21:35:23+00:00"
+        },
         {
             "name": "dnoegel/php-xdg-base-dir",
             "version": "0.1",

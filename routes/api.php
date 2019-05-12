@@ -27,6 +27,11 @@ Route::namespace('Api')->prefix('v1')->group(function() {
         // These drive the login flow for OAuth
         // Route::post('oauth/{driver}', 'OAuthController@redirectToProvider');
         //Route::get('oauth/{driver}/callback', 'OAuthController@handleProviderCallback')->name('oauth.callback');
+
+        // Test route
+        Route::get('guest-test', function() {
+            return 'access successful';    
+        });        
     });
 
     ////////////////////////////////////////////////////////////////////////////
@@ -42,6 +47,10 @@ Route::namespace('Api')->prefix('v1')->group(function() {
         Route::get('test', function() {
             return \Auth::guard('api')->user()->getId();    
         })->name('AuthTestRoute');
+
+        Route::post('upload', 'UploadGamesController@upload');
+        Route::get('unprocessed-games', 'GamesController@unprocessedGames');
+        Route::delete('unprocessed-games/{id}', 'GamesController@reject');
 
     });
 

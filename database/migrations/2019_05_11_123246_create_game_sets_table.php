@@ -16,6 +16,8 @@ class CreateGameSetsTable extends Migration
         Schema::create('game_sets', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedInteger('user_id')->index();
+            $table->string('hash')->unique();
+
             $table->timestamps();
         });
     }

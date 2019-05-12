@@ -3,7 +3,7 @@ import Promise from 'bluebird'
 import router from '@/routes/router'
 import EventBus from '@/services/eventbus';
 
-const HTTP_DELAY = process.env.NODE_ENV === 'development' ? 500 : 0;
+const HTTP_DELAY = process.env.NODE_ENV === 'slow-development' ? 500 : 0;
 
 // This provides our own wrapper for HTTP requests.
 export default function wrap(prom) {

@@ -8,6 +8,7 @@ use App\Move;
 use App\Position;
 use App\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -34,11 +35,14 @@ class DatabaseSeeder extends Seeder
           'role' => 'admin',
         ]);
 
+        return;
+
 
         // Create gameset
 
         $set = GameSet::create([
-        	'user_id' => $user->id
+        	'user_id' => $user->id,
+        	'hash' => Hash::make('1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O')
         ]);
 
         // Create example game group
@@ -51,6 +55,9 @@ class DatabaseSeeder extends Seeder
 
         // Create example game
         $exampleGame = Game::create([
+        	'white' => 'Jaakko Testaaja',
+        	'black' => 'Mikko Testaaja',
+        	'result' => rand(0, 10) > 5 ? '1-0' : '1/2',
         	'game_set_id' => $set->id,
         	'game_group_id' => $exampleGameGroup->id,
         	'user_id' => $user->id,

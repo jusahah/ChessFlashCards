@@ -7,6 +7,9 @@ import API from '@/api'
 import Login from '@/views/Login'
 import Member from '@/views/member/Member'
 import Dashboard from '@/views/member/Dashboard'
+import UploadGames from '@/views/member/upload/UploadGames'
+import ProcessGames from '@/views/member/upload/ProcessGames'
+import ProcessGame from '@/views/member/upload/process/ProcessGame'
 
 Vue.use(VueRouter)
 
@@ -40,6 +43,22 @@ const router = new VueRouter({
             name: 'Dashboard',
             component: Dashboard,
           },
+          {
+            path: 'upload',
+            name: 'UploadGames',
+            component: UploadGames,
+          },
+          {
+            path: 'process',
+            name: 'ProcessGames',
+            component: ProcessGames,
+          },
+          {
+            path: 'process/:id',
+            props: true,
+            name: 'ProcessGame',
+            component: ProcessGame,
+          }
 
         ]
       }

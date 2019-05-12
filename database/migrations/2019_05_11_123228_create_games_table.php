@@ -19,6 +19,14 @@ class CreateGamesTable extends Migration
             $table->unsignedInteger('user_id')->index();
             $table->unsignedInteger('game_set_id')->index();
             $table->unsignedInteger('game_group_id')->index()->nullable();
+
+            $table->string('white')->nullable();
+            $table->string('black')->nullable();
+            $table->enum('result', ['1-0', '0-1', '1/2'])->nullable();
+
+            // Whether we have ran this game through AWS Lambda etc.
+            $table->boolean('processed_by_lambda')->default(false);
+            $table->boolean('processed_by_user')->default(false);
             $table->text('pgn');
             $table->timestamps();
         });

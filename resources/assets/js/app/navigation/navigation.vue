@@ -3,12 +3,16 @@
 
     <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
 
-    <b-navbar-brand :to="{name: 'Dashboard'}">ChessTraining</b-navbar-brand>
+    <b-navbar-brand :to="{name: 'Dashboard'}">ChessFlashCards</b-navbar-brand>
 
     <b-collapse is-nav id="nav_collapse">
 
       <b-navbar-nav>
-        <b-nav-item :to="{name: 'Dashboard'}">Upload</b-nav-item>
+        <b-nav-item-dropdown text="Upload">
+          <b-dropdown-item :to="{name: 'UploadGames'}">Upload Games</b-dropdown-item>
+          <b-dropdown-item :to="{name: 'ProcessGames'}">Process Games</b-dropdown-item>
+        </b-nav-item-dropdown>
+
         <b-nav-item :to="{name: 'Dashboard'}">Train</b-nav-item>
         <b-nav-item :to="{name: 'Dashboard'}">View</b-nav-item>
         <b-nav-item :to="{name: 'Dashboard'}">Settings</b-nav-item>
