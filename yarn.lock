@@ -1414,6 +1414,10 @@ charenc@~0.0.1:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
 
+chess.js@^0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/chess.js/-/chess.js-0.10.2.tgz#eacefa2067155f87f046e80cc12d2019eef1b81a"
+
 chokidar@^2.0.0, chokidar@^2.0.2, chokidar@^2.0.3, chokidar@^2.0.4, chokidar@^2.1.5:
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-2.1.5.tgz#0ae8434d962281a5f56c72869e79cb6d9d86ad4d"
@@ -1488,6 +1492,13 @@ clone-deep@^2.0.1:
     is-plain-object "^2.0.4"
     kind-of "^6.0.0"
     shallow-clone "^1.0.0"
+
+cm-chessboard@^2.13.9:
+  version "2.13.9"
+  resolved "https://registry.yarnpkg.com/cm-chessboard/-/cm-chessboard-2.13.9.tgz#09a8a26db12f9878f1bed007469c34614b4e44ed"
+  dependencies:
+    svjs-svg "^1.1.10"
+    web-module-curator "^1.1.3"
 
 coa@^2.0.2:
   version "2.0.2"
@@ -5631,6 +5642,10 @@ statuses@~1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.4.0.tgz#bb73d446da2796106efcc1b601a253d6c46bd087"
 
+stockfish@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/stockfish/-/stockfish-10.0.0.tgz#c44a46364a51bed8bc44611c3657059566f3f8ba"
+
 stream-browserify@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/stream-browserify/-/stream-browserify-2.0.2.tgz#87521d38a44aa7ee91ce1cd2a47df0cb49dd660b"
@@ -5768,6 +5783,10 @@ svgo@^1.0.0:
     stable "^0.1.8"
     unquote "~1.1.1"
     util.promisify "~1.0.0"
+
+svjs-svg@^1.1.10:
+  version "1.1.10"
+  resolved "https://registry.yarnpkg.com/svjs-svg/-/svjs-svg-1.1.10.tgz#dd1647b916a4faffa9a0dae1e00f912f1cad3443"
 
 symbol-observable@1.0.1:
   version "1.0.1"
@@ -6134,6 +6153,10 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   resolved "https://registry.yarnpkg.com/wbuf/-/wbuf-1.7.3.tgz#c1d8d149316d3ea852848895cb6a0bfe887b87df"
   dependencies:
     minimalistic-assert "^1.0.0"
+
+web-module-curator@^1.1.3:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/web-module-curator/-/web-module-curator-1.1.4.tgz#3c37eca10d85308d80c863c4c6bc5854d417decf"
 
 webpack-cli@^3.1.2:
   version "3.3.2"

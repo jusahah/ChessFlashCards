@@ -12,6 +12,7 @@
 
         <!-- Switch main style here (yeti, united, etc.) -->
         <link rel="stylesheet" type="text/css" href="{{asset('css/bootstrap-united.css')}}">
+        <link rel="stylesheet" type="text/css" href="{{asset('css/cm-chessboard/chessboard.css')}}">
 
     </head>
     <body>

@@ -49,7 +49,9 @@ Route::namespace('Api')->prefix('v1')->group(function() {
         })->name('AuthTestRoute');
 
         Route::post('upload', 'UploadGamesController@upload');
+        
         Route::get('unprocessed-games', 'GamesController@unprocessedGames');
+        Route::get('unprocessed-games/{id}', 'GamesController@unprocessedGame');
         Route::delete('unprocessed-games/{id}', 'GamesController@reject');
 
     });

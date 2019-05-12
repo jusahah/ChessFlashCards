@@ -19,6 +19,18 @@ export default {
 
     );  
   },
+  getUnprocessedGame(id) {
+
+    return apiCall(
+      axios.get(urlprefix + '/unprocessed-games/' + id, {
+        headers: AuthService.getHeaders()
+      })
+      .then((response) => {
+        return response.data
+      })      
+
+    );     
+  },  
   getUnprocessedGames() {
 
     return apiCall(

@@ -13,6 +13,21 @@ use Illuminate\Support\Facades\Hash;
 class GamesController extends Controller
 {
 
+    public function unprocessedGame(Request $request, int $id) 
+    {
+
+        $user = \Auth::guard('api')->user();
+        $game = Game::findOrFail($id);
+
+        if ($game->user_id !== $user->id) {
+            throw new \Exception('Can not get Game that is not owned by user');
+        }
+
+        return $game; 
+
+
+    }
+
     public function unprocessedGames(Request $request) 
     {
 
