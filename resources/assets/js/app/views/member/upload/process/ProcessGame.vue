@@ -4,8 +4,8 @@
 
     <b-row>
       <b-col cols="2">
-        <div v-if="currentMove" style="margin-top: 30px;">
-          <p>Mark {{currentMove}} as: </p>
+        <div v-if="nextMove" style="margin-top: 30px;">
+          <p>Mark {{nextMove}} as: </p>
           <b-button v-on:click="markCurrentMove(-2)" variant="danger" style="width: 100%; margin-bottom: 4px;">Terrible</b-button>
           <br>
           <b-button v-on:click="markCurrentMove(-1)" variant="danger" style="width: 100%; margin-bottom: 4px;">Bad</b-button>
@@ -15,6 +15,9 @@
           <b-button v-on:click="markCurrentMove(1)" variant="success" style="width: 100%; margin-bottom: 4px;">Good</b-button>
           <br>
           <b-button v-on:click="markCurrentMove(2)" variant="success" style="width: 100%; margin-bottom: 4px;">Great</b-button>
+          <hr>
+          <b-button v-if="waitingBetterMoveFromUser" v-on:click="cancelGiveBetterMove" variant="warning" style="width: 100%; margin-bottom: 4px;">Cancel better move</b-button>
+          <b-button v-else v-on:click="giveCorrectMove" variant="primary" style="width: 100%; margin-bottom: 4px;">Give correct move</b-button>
         </div>
       </b-col>      
       <b-col cols="7">
@@ -24,6 +27,7 @@
         </p>
 
         <div style="width: 600px; height: 600px;" id="cfc-board"></div>
+        <p v-if="waitingBetterMoveFromUser">Play better move on board!</p>
       </b-col>
       <b-col cols="3">
         <div style="max-height: 600px; overflow: auto; margin-top: 24px;">
@@ -52,7 +56,7 @@
 <script>
 
   import _ from 'lodash'
-  import {Chessboard} from "cm-chessboard/src/cm-chessboard/Chessboard.js"
+  import {Chessboard, MOVE_INPUT_MODE, MARKER_TYPE, INPUT_EVENT_TYPE, COLOR} from "cm-chessboard/src/cm-chessboard/Chessboard.js"
   import Chess from 'chess.js';
   
   import API from '@/api'
@@ -70,10 +74,15 @@
         // Board & its state
         animating: false,
         pendingBoardRefresh: false,
+
+        waitingBetterMoveFromUser: false,
+
         // board: null,
 
         pgnMoveList: [],
         currMove: null,
+
+        correctMoves: {},
 
         // Verdicts
         verdicts: [],
@@ -98,17 +107,20 @@
       }
     },
     computed: {
-      currentMove: function() {
+      nextMove: function() {
         if (this.currIndexInMoveHistory >= 0) {
-          var m = this.moveHistory[this.currIndexInMoveHistory]
+          if (this.moveHistory && this.currIndexInMoveHistory < this.moveHistory.length-1) {
+            var m = this.moveHistory[this.currIndexInMoveHistory+1]
 
-          var halfmove = this.currIndexInMoveHistory+1;
+            console.warn(this.currIndexInMoveHistory)
+            var halfmove = this.currIndexInMoveHistory+1;
 
-          if (halfmove % 2 !== 0) {
-            // Whites move
-            return (Math.floor(halfmove/2)+1) + '. ' + m;
-          } else {
-            return (halfmove / 2) + '... ' + m;
+            if (halfmove % 2 !== 0) {
+              // Whites move
+              return (Math.floor(halfmove/2)+1) + '... ' + m.san;
+            } else {
+              return ((halfmove / 2)+1) + '. ' + m.san;
+            }
           }
         } 
 
@@ -157,6 +169,7 @@
       this.board = new Chessboard(
         document.getElementById("cfc-board"),
         { 
+          moveInputMode: MOVE_INPUT_MODE.dragPiece,
           position: "start",
           animationDuration: 90,
           sprite: {
@@ -168,6 +181,42 @@
 
     },
     methods: {
+      addMoveAsCorrectOne(move, fen) {
+        console.log("Move marked as correct one");
+        console.log(move);
+        console.log(fen);
+
+        this.correctMoves[fen] = move;
+      },
+      moveInputHandler(event) {
+        if (event.type === INPUT_EVENT_TYPE.moveDone) {
+          console.log("Move done!!");
+
+                const move = {from: event.squareFrom, to: event.squareTo}
+                var fenBeforeMove = this.chessjs.fen();
+
+                var res = this.chessjs.move(move);
+
+                if (res) {
+                  event.chessboard.disableMoveInput();
+                  this.addMoveAsCorrectOne(move, fenBeforeMove);
+                  this.waitingBetterMoveFromUser = false;
+                  this.chessjs.undo();
+                }
+
+                this.refreshPositionOnBoard();
+                /*
+                if (this.whoIsToMoveInFen(this.chessjs.fen()) === 'w') {
+                  event.chessboard.enableMoveInput(this.moveInputHandler.bind(this), COLOR.white)
+                } else {
+                  event.chessboard.enableMoveInput(this.moveInputHandler.bind(this), COLOR.black)
+                }
+                */
+                return true;
+            } else {
+                return true
+            }
+      },
       moveListMoveStyle: function(movenum, color) {
 
         if (color === 'b') {
@@ -198,6 +247,19 @@
           'font-weight': useBold ? 'bold' : 'normal',
           'background': color
         }
+      },
+      giveCorrectMove() {
+        //this.showPrevPosition();
+        this.setGiveMoveMode();
+      },
+      setGiveMoveMode() {
+        this.waitingBetterMoveFromUser = true;
+        var color = this.whoIsToMoveInFen(this.chessjs.fen()) === 'w' ? COLOR.white : COLOR.black; 
+        this.board.enableMoveInput(this.moveInputHandler.bind(this), color)
+      },
+      cancelGiveBetterMove() {
+        this.waitingBetterMoveFromUser = false;
+        //this.showNextPosition();
       },
       markCurrentMove(verdict) {
         // -2, -1, 0, 1, 2
@@ -234,7 +296,12 @@
           this.analyzing = false;
           this.waitingForBestMove = false;
           // Start analyzing current position
-          this.analyzePosition(this.chessjs.fen());
+          setTimeout(() => {
+            if (this.chessjs) {
+              this.analyzePosition(this.chessjs.fen());
+            }
+          }, 1000);
+
           return;
         }
 
@@ -273,20 +340,22 @@
         return fen.split(' ')[1];
       },
       updateUiWithBestMove(bestmove) {
-        this.board.removeMarkers();
+        //this.board.removeMarkers();
 
         var from = bestmove.slice(0,2);
         var to = bestmove.slice(2,4);
 
         //console.log("Best move is " + from + " -> " + to);
 
-        this.board.addMarker(from);
-        this.board.addMarker(to);
+        //this.board.addMarker(from);
+        //this.board.addMarker(to);
 
       },
       updateUiWithScore() {},
 
       goToMove(moveNum, color) {
+
+        this.board.removeMarkers();
 
         var wantedIndexInMoveHistory = color === 'w' ? ((moveNum-1) * 2) : ((moveNum-1) * 2) + 1;
 
@@ -327,6 +396,8 @@
 
           console.log("Move index: " + this.currIndexInMoveHistory);
 
+          //this.board.removeMarkers();
+
           this.chessjs.undo();
 
           if (!skipRefresh) {
@@ -335,7 +406,7 @@
         }
       },
       showNextPosition(skipRefresh) {
-        if (this.currIndexInMoveHistory < this.moveHistory.length) {
+        if (this.currIndexInMoveHistory < this.moveHistory.length-1) {
 
           this.currIndexInMoveHistory++;
 
@@ -343,6 +414,13 @@
 
           // Get move to play on chessjs instance
           var move = this.moveHistory[this.currIndexInMoveHistory];
+
+          if (!skipRefresh) {
+            //this.board.removeMarkers();
+            //this.board.addMarker(move.from, MARKER_TYPE.move)
+            //this.board.addMarker(move.to, MARKER_TYPE.move)
+            
+          }
 
           console.log("Playing move " + move);
           this.chessjs.move(move);
@@ -384,15 +462,41 @@
           return;
         }
 
+        this.board.removeMarkers();
+
         var fen = this.chessjs.fen();
+
+
+        // Actual played move markers
+        setTimeout(() => {
+          if (this.currIndexInMoveHistory >= 0 && this.currIndexInMoveHistory < this.moveHistory.length-1) {  
+
+            console.log("Add next move marker");
+
+            var nextMove = this.moveHistory[this.currIndexInMoveHistory+1];
+            console.log(nextMove);
+            this.board.addMarker(nextMove.from, MARKER_TYPE.move);
+            this.board.addMarker(nextMove.to, MARKER_TYPE.move);
+
+
+          }
+
+        }, 0);
+
+        // Correct move markers
+        if (this.correctMoves[fen]) {
+          var correctMove = this.correctMoves[fen];
+          this.board.addMarker(correctMove.from);
+          this.board.addMarker(correctMove.to);
+        }
 
         console.log("Set board to FEN: " + fen);
 
         this.animating = true;
 
-        this.analyzePosition(fen);
+        //this.analyzePosition(fen);
         
-        this.board.removeMarkers();
+        //this.board.removeMarkers();
 
         return this.board.setPosition(fen)
         .then(() => {
@@ -418,12 +522,12 @@
             nthMove++;
 
             moveList.push({
-              white: nthMove + '.' + move,
+              white: nthMove + '.' + move.san,
               movenum: nthMove
             });
 
           } else {
-            moveList[moveList.length-1].black = move;
+            moveList[moveList.length-1].black = move.san;
           }
 
         })
@@ -443,7 +547,7 @@
           // Get move history using temp chessJs instance
           var temp_chessjs = new Chess();
           temp_chessjs.load_pgn(game.pgn);
-          this.moveHistory = temp_chessjs.history();
+          this.moveHistory = temp_chessjs.history({verbose: true});
 
           console.log(this.moveHistory);
 

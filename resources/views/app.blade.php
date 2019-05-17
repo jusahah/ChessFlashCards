@@ -11,7 +11,7 @@
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
 
         <!-- Switch main style here (yeti, united, etc.) -->
-        <link rel="stylesheet" type="text/css" href="{{asset('css/bootstrap-united.css')}}">
+        <link rel="stylesheet" type="text/css" href="{{asset('css/bootstrap-yeti.css')}}">
         <link rel="stylesheet" type="text/css" href="{{asset('css/cm-chessboard/chessboard.css')}}">
 
     </head>
