@@ -54,6 +54,12 @@ Route::namespace('Api')->prefix('v1')->group(function() {
         Route::get('unprocessed-games/{id}', 'GamesController@unprocessedGame');
         Route::delete('unprocessed-games/{id}', 'GamesController@reject');
 
+        //Route::post('positions/{fen}/moveverdicts', 'PositionController@storeVerdict');
+        Route::post('moveverdicts', 'PositionController@storeVerdict');
+        Route::post('moveverdicts/get', 'PositionController@getVerdicts');
+
+        Route::post('suggestedmoves', 'PositionController@addBetterMove');
+
     });
 
 });

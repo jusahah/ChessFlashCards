@@ -24,15 +24,11 @@ class CreateMovesTable extends Migration
             // Whether this move was deemed good/bad by earlier move that had flagging_enabled
             $table->boolean('was_flagged')->default(false);
 
-            // Note! When inserting we first check if same move played earlier has
-            // some verdict already! If so, we use that verdict. If not, we use computer analysis
-            // verdict or leave null.
-            $table->enum('verdict', ['terrible', 'bad', 'neutral', 'good', 'great'])->nullable();
             $table->smallInteger('eval')->nullable(); // In centipawns
 
             $table->timestamps();
 
-            $table->unique(['game_id', 'position_id']);
+            $table->unique(['game_id', 'half_move_num']);
         });
     }
 

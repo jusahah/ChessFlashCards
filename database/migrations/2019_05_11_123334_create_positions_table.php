@@ -15,6 +15,9 @@ class CreatePositionsTable extends Migration
     {
         Schema::create('positions', function (Blueprint $table) {
             $table->bigIncrements('id');
+            
+            $table->unsignedInteger('user_id')->index();
+
             $table->boolean('is_white_to_move');
             $table->string('fen')->unique();
             // Verdict from who is to move perspective
