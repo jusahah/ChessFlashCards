@@ -12,16 +12,20 @@ export default {
   getBetterMoves(fens) {
     return [];
   },
+  removeVerdict(id) {
+    return apiCall(
+      axios.delete(urlprefix + '/verdicts/' + id,{
+        headers: AuthService.getHeaders()
+      })
+      .then((response) => {
+        return true;
+      })      
+
+    );  
+  },
+  /*
   getVerdicts(fens) {
-    /*
-    return new Promise((resolve) => {
-
-      setTimeout(() => {
-        resolve({move: move, fen: fen, verdict: verdict});
-      }, 500);
-    });
-    */
-
+    
     return apiCall(
       axios.post(urlprefix + '/moveverdicts/get', {
         fens: fens,
@@ -33,6 +37,7 @@ export default {
       })      
 
     );     
-  },  
+  },
+  */  
 }
 

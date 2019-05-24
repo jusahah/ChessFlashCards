@@ -49,16 +49,26 @@ Route::namespace('Api')->prefix('v1')->group(function() {
         })->name('AuthTestRoute');
 
         Route::post('upload', 'UploadGamesController@upload');
+
+        // This turns list of FENs into list of positions.
+        Route::post('positions', 'PositionController@positionsFromFens');
+        Route::post('positions/enable-training', 'PositionController@enableTraining');
+        Route::post('positions/disable-training', 'PositionController@disableTraining');
+
+        Route::get('training-positions', 'PositionController@trainable');
+
+        Route::get('attempts', 'AttemptController@history');
         
         Route::get('unprocessed-games', 'GamesController@unprocessedGames');
         Route::get('unprocessed-games/{id}', 'GamesController@unprocessedGame');
         Route::delete('unprocessed-games/{id}', 'GamesController@reject');
 
         //Route::post('positions/{fen}/moveverdicts', 'PositionController@storeVerdict');
-        Route::post('moveverdicts', 'PositionController@storeVerdict');
-        Route::post('moveverdicts/get', 'PositionController@getVerdicts');
+        Route::delete('verdicts/{id}', 'VerdictController@remove');
+        Route::post('verdicts', 'PositionController@storeVerdict');
+        //Route::post('moveverdicts/get', 'PositionController@getVerdicts');
 
-        Route::post('suggestedmoves', 'PositionController@addBetterMove');
+        //Route::post('suggestedmoves', 'PositionController@addBetterMove');
 
     });
 

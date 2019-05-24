@@ -4,17 +4,23 @@
 
     <b-row>
       <b-col cols="2">
-        <div v-if="nextMove" style="margin-top: 30px;">
+        <div v-if="nextMove" style="margin-top: 30px; position: relative; height: 600px;">
           <p>Mark {{nextMove}} as: </p>
-          <b-button v-on:click="markNextMove(-1)" :disabled="waitingBetterMoveFromUser" variant="danger" style="width: 100%; margin-bottom: 4px;">Bad</b-button>
+          <b-button v-on:click="markNextMove('good')" :disabled="waitingBetterMoveFromUser" variant="success" style="width: 100%; margin-bottom: 4px;">Good</b-button>
           <br>
-          <b-button v-on:click="markNextMove(0)" :disabled="waitingBetterMoveFromUser" variant="secondary" style="width: 100%; margin-bottom: 4px;">Neutral</b-button>
-          <br>
-          <b-button v-on:click="markNextMove(1)" :disabled="waitingBetterMoveFromUser" variant="success" style="width: 100%; margin-bottom: 4px;">Good</b-button>
+          <b-button v-on:click="markNextMove('bad')" :disabled="waitingBetterMoveFromUser" variant="danger" style="width: 100%; margin-bottom: 4px;">Bad</b-button>
           <br>
           <hr>
-          <b-button v-if="waitingBetterMoveFromUser" v-on:click="cancelGiveBetterMove" variant="warning" style="width: 100%; margin-bottom: 4px;">Cancel better move</b-button>
-          <b-button v-else v-on:click="giveCorrectMove" variant="primary" style="width: 100%; margin-bottom: 4px;">Give correct move</b-button>
+          <b-button v-if="waitingBetterMoveFromUser" v-on:click="cancelGiveBetterMove" variant="warning" style="width: 100%; margin-bottom: 4px;">Cancel giving {{inputtedMoveGetsVerdict}} {{inputLineMode ? 'line' : 'move'}}</b-button>
+          <br>
+          <b-button v-if="waitingBetterMoveFromUser && inputLineMode" variant="primary" style="width: 100%; margin-bottom: 4px;">Save line!</b-button>
+          <template v-else-if="!waitingBetterMoveFromUser">
+            <b-button v-on:click="giveCorrectMove" variant="secondary" style="width: 100%; margin-bottom: 4px;">Give good move</b-button>
+            <b-button v-if="false" v-on:click="giveCorrectMoves" variant="secondary" style="width: 100%; margin-bottom: 4px;">Give good line</b-button>
+            <b-button v-on:click="giveIncorrectMove" variant="secondary" style="width: 100%; margin-bottom: 4px;">Give bad move</b-button>
+          </template>
+          <b-button v-if="positionInTraining" v-on:click="removePositionFromTraining" variant="danger" style="width: 100%; margin-bottom: 4px; position: absolute; bottom: 12px;">Remove position from training!</b-button>
+          <b-button v-else v-on:click="addPositionToTraining" :disabled="positiveVerdicts.length === 0" :title="positiveVerdicts.length === 0 ? 'Training requires at least one good move to be added for the position' : 'Add current position on board to training set'" variant="info" style="width: 100%; margin-bottom: 4px; position: absolute; bottom: 12px;">Add position to training!</b-button>
         </div>
       </b-col>      
       <b-col cols="7">
@@ -24,13 +30,24 @@
         </p>
 
         <div style="width: 600px; height: 600px;" id="cfc-board"></div>
-        <p v-if="waitingBetterMoveFromUser">Play better move on board!</p>
+        <p v-if="waitingBetterMoveFromUser && inputtedLine.length === 0">Play {{inputtedMoveGetsVerdict}} move on board!</p>
+        <p v-else-if="waitingBetterMoveFromUser">
+          <span v-for="move in inputtedLine" style="margin-right: 8px;"><i>{{move.san}}</i></span>
+        </p>
         <div v-else>
-          <h5>Better moves</h5>
+          <br>
+          <h6>Good moves</h6>
 
-          <b-badge v-for="betterMove in betterMoves" :key="betterMove.fen + '_' + betterMove.move" variant="success" style="position: relative; width: 80px; height: 22px; font-size: 16px;">
-            {{betterMove.move}}<span style="position: absolute; top: 0; right: 4px; font-size: 20px; font-weight: bold; color: white; cursor: pointer;">x</span>
-          </b-badge>                  
+          <b-badge v-for="verdict in positiveVerdicts" :key="verdict.fen + '_' + verdict.move" variant="success" style="position: relative; width: 80px; height: 22px; font-size: 16px; margin-right: 6px;">
+            {{verdict.san}}<span v-on:click="removeVerdict(verdict.id)" style="position: absolute; top: 0; right: 4px; font-size: 20px; font-weight: bold; color: white; cursor: pointer;">x</span>
+          </b-badge> 
+          <br>
+          <h6>Bad moves</h6>
+
+          <b-badge v-for="verdict in negativeVerdicts" :key="verdict.fen + '_' + verdict.move" variant="danger" style="position: relative; width: 80px; height: 22px; font-size: 16px; margin-right: 6px;">
+            {{verdict.san}}<span v-on:click="removeVerdict(verdict.id)" style="position: absolute; top: 0; right: 4px; font-size: 20px; font-weight: bold; color: white; cursor: pointer;">x</span>
+          </b-badge>   
+
         </div>  
       </b-col>
       <b-col cols="3">
@@ -81,11 +98,16 @@
         pendingBoardRefresh: false,
 
         waitingBetterMoveFromUser: false,
+        inputtedMoveGetsVerdict: null,
+        inputLineMode: false,
+        inputtedLine: [],
+        lineChessJs: null,
 
         // board: null,
 
         pgnMoveList: [],
         currMove: null,
+        currentFen: null,
 
         correctMoves: {},
         betterMoves: [],
@@ -100,11 +122,11 @@
             ...
           ]
         */
-        verdicts: [],
+        // verdicts: [],
 
         // ChessJs instance
         game: null,
-        // chessjs: null
+        // boardChessjs: null
         moveHistory: null,
         currIndexInMoveHistory: -1,
 
@@ -140,7 +162,7 @@
           nth++;
         });
 
-        console.warn(table)
+        // console.warn(table)
 
         return table;
       },
@@ -165,7 +187,59 @@
         } 
 
         return null;
-      }
+      },
+      positionInTraining: function() {
+        if (this.positions && this.currentFen) {
+
+          var position = _.find(this.positions, (p) => {
+            return p.fen === this.currentFen;
+          });
+
+          if (position) {
+            return !!position.trainable;
+          }
+        }        
+
+        return false;
+      },
+      positiveVerdicts: function() {
+
+        if (this.positions && this.currentFen) {
+
+          var position = _.find(this.positions, (p) => {
+            return p.fen === this.currentFen;
+          });
+
+          if (position) {
+            return _.filter(position.verdicts, (v) => {
+              return v.verdict === 'good' || v.verdict === 'great';
+            });
+          }
+        }
+
+        return [];
+
+
+      },
+      negativeVerdicts: function() {
+
+        if (this.positions && this.currentFen) {
+
+          var position = _.find(this.positions, (p) => {
+            return p.fen === this.currentFen;
+          });
+
+          if (position) {
+            return _.filter(position.verdicts, (v) => {
+              return v.verdict === 'bad' || v.verdict === 'terrible';
+            });
+          }
+        }
+
+        return [];
+
+
+      }      
     },
     created() {
       this.loadGame();
@@ -221,19 +295,67 @@
 
     },
     methods: {
-      addMoveAsCorrectOne(move, fen) {
-        console.log("Move marked as correct one");
+      removePositionFromTraining() {
+        console.log("Removing fen " + this.currentFen + " to training set");
+        return API.position.disableTraining(this.currentFen)
+        .then((position) => {
+          this.positions = _.map(this.positions, (p) => {
+            if (p.id === position.id) {
+              return position;
+            }
+
+            return p;
+          });
+        }) 
+      },
+      addPositionToTraining() {
+        console.log("Adding fen " + this.currentFen + " to training set");
+        return API.position.enableTraining(this.currentFen)
+        .then((position) => {
+          this.positions = _.map(this.positions, (p) => {
+            if (p.id === position.id) {
+              return position;
+            }
+
+            return p;
+          });
+        })        
+      },
+      removeVerdict(verdictId) {
+        return API.verdict.removeVerdict(verdictId)
+        .then(() => {
+          // Remove from positions
+          _.each(this.positions, (p) => {
+            if (p.verdicts && verdictId) {
+              p.verdicts = _.filter(p.verdicts, (v) => {
+                return v.id !== verdictId;
+              })
+            }
+          });          
+        })
+      },
+      addMoveAsCorrectOrIncorrectOne(move, fen) {
+        if (!this.inputtedMoveGetsVerdict) {
+          console.warn("addMoveAsCorrectOrIncorrectOne does not know what verdict is");
+          return;
+        }
+
+        console.log("Move marked as correct/incorrect one");
         console.log(move);
         console.log(fen);
 
         var fromto = move.from + move.to;
         var san = move.san;
 
-        return API.position.saveSuggestedMove(fromto, san, fen)
+        var verdict = this.inputtedMoveGetsVerdict; 
+
+        this.inputtedMoveGetsVerdict = null;
+
+        return API.position.saveMoveVerdict(verdict, fromto, san, fen)
         .then((position) => {
           console.error(position);
-          var move = position.move; // 'a1a2'
-          var verdict = position.verdict;
+          //var move = position.move; // 'a1a2'
+          //var verdict = position.verdict;
           var fen = position.fen;
 
           var found = false;
@@ -251,8 +373,8 @@
             this.positions.push(position);
           }
 
-          console.warn("New positions");
-          console.warn(this.positions);
+          //console.warn("New positions");
+          //console.warn(this.positions);
 
           //throw new Error('Skip');
 
@@ -289,32 +411,54 @@
       },
       moveInputHandler(event) {
         if (event.type === INPUT_EVENT_TYPE.moveDone) {
-          console.log("Move done!!");
 
-                const move = {from: event.squareFrom, to: event.squareTo}
-                var fenBeforeMove = this.chessjs.fen();
+          if (this.inputLineMode) {
 
-                var res = this.chessjs.move(move);
+            console.log("Move done!!");
+            const move = {from: event.squareFrom, to: event.squareTo}
+            var fenBeforeMove = this.lineChessJs.fen();
 
-                if (res) {
-                  event.chessboard.disableMoveInput();
-                  this.addMoveAsCorrectOne(res, fenBeforeMove);
-                  this.waitingBetterMoveFromUser = false;
-                  this.chessjs.undo();
-                }
+            var res = this.lineChessJs.move(move);
 
-                this.refreshPositionOnBoard();
-                /*
-                if (this.whoIsToMoveInFen(this.chessjs.fen()) === 'w') {
-                  event.chessboard.enableMoveInput(this.moveInputHandler.bind(this), COLOR.white)
-                } else {
-                  event.chessboard.enableMoveInput(this.moveInputHandler.bind(this), COLOR.black)
-                }
-                */
-                return true;
-            } else {
-                return true
+            if (res) {
+              event.chessboard.disableMoveInput();
+              this.inputtedLine.push(res);
+              console.warn(this.inputtedLine);
+              // Set give mode again.
+              this.setGiveMoveMode();
             }
+
+            this.refreshPositionOnBoard();
+
+            return true;
+          } else {
+            console.log("Move done!!");
+            const move = {from: event.squareFrom, to: event.squareTo}
+            var fenBeforeMove = this.boardChessjs.fen();
+
+            var res = this.boardChessjs.move(move);
+
+            if (res) {
+              event.chessboard.disableMoveInput();
+              this.addMoveAsCorrectOrIncorrectOne(res, fenBeforeMove);
+              this.waitingBetterMoveFromUser = false;
+              this.boardChessjs.undo();
+            }
+
+            this.refreshPositionOnBoard();
+            /*
+            if (this.whoIsToMoveInFen(this.boardChessjs.fen()) === 'w') {
+              event.chessboard.enableMoveInput(this.moveInputHandler.bind(this), COLOR.white)
+            } else {
+              event.chessboard.enableMoveInput(this.moveInputHandler.bind(this), COLOR.black)
+            }
+            */
+            return true;
+          }
+        } 
+
+        return true;
+
       },
       moveTableStyle: function(movenum, color) {
 
@@ -332,8 +476,8 @@
           return {};
         }
 
-        console.warn(movenum + ' for ' + color);
-        console.warn(pgnMoveListMove);
+        //console.warn(movenum + ' for ' + color);
+        //console.warn(pgnMoveListMove);
         
         var verdict = null;
 
@@ -359,17 +503,17 @@
 
         })
 
-        console.warn("found verdict: " + !!verdict)
+        // console.warn("found verdict: " + !!verdict)
 
         if (!verdict) {
           var color = 'none';
         } else {
           var colors = {
-            '-2': 'crimson',
-            '-1': 'orange',
-            '0': 'yellow',
-            '1': '#66ff66',
-            '2': '#22ff22',
+            'terrible': 'crimson',
+            'bad': 'orange',
+            'neutral': 'yellow',
+            'good': '#66ff66',
+            'great': '#22ff22',
           }
 
           var color = colors[verdict.verdict.toString()];
@@ -382,16 +526,49 @@
       },
       giveCorrectMove() {
         //this.showPrevPosition();
+        this.inputtedMoveGetsVerdict = 'good';
+        this.inputLineMode = false;
         this.setGiveMoveMode();
       },
+      giveCorrectMoves() {
+        
+        this.lineChessJs = new Chess();
+        var s = this.lineChessJs.load(this.boardChessjs.fen());
+        
+        if (!s) {
+          console.error('Could not load FEN into temporary chessjs instance for sideline inputting');
+          this.lineChessJs = null;
+          return false;
+        }
+
+        this.boardChessjs = this.lineChessJs;
+
+        //this.showPrevPosition();
+        this.inputtedMoveGetsVerdict = 'good';
+        this.inputLineMode = true;
+        this.inputtedLine = [];
+        this.setGiveMoveMode();
+      },      
+      giveIncorrectMove() {
+        //this.showPrevPosition();
+        this.inputtedMoveGetsVerdict = 'bad';
+        this.inputLineMode = false;
+        this.setGiveMoveMode();
+      },      
       setGiveMoveMode() {
         this.waitingBetterMoveFromUser = true;
-        var color = this.whoIsToMoveInFen(this.chessjs.fen()) === 'w' ? COLOR.white : COLOR.black; 
+        var color = this.whoIsToMoveInFen(this.boardChessjs.fen()) === 'w' ? COLOR.white : COLOR.black; 
         this.board.enableMoveInput(this.moveInputHandler.bind(this), color)
       },
       cancelGiveBetterMove() {
+        this.lineChessJs = null;
+        this.boardChessjs = this.gameChessJs; // Set original back to business.
+        this.inputLineMode = false;
+        this.inputtedLine = [];
         this.waitingBetterMoveFromUser = false;
         //this.showNextPosition();
+
+        this.refreshPositionOnBoard();
       },
 
       getMoveFromMoveHistory(index) {
@@ -413,7 +590,7 @@
 
         console.log("Marking move " + fromto + " as " + verdict);
 
-        return API.position.saveMoveVerdict(verdict, fromto, this.chessjs.fen())
+        return API.position.saveMoveVerdict(verdict, fromto, san, this.boardChessjs.fen())
         .then((position) => {
           console.error(position);
           var move = position.move; // 'a1a2'
@@ -485,8 +662,8 @@
           this.waitingForBestMove = false;
           // Start analyzing current position
           setTimeout(() => {
-            if (this.chessjs) {
-              this.analyzePosition(this.chessjs.fen());
+            if (this.boardChessjs) {
+              this.analyzePosition(this.boardChessjs.fen());
             }
           }, 1000);
 
@@ -595,11 +772,9 @@
 
           this.currIndexInMoveHistory--;
 
-          console.log("Move index: " + this.currIndexInMoveHistory);
-
           //this.board.removeMarkers();
 
-          this.chessjs.undo();
+          this.boardChessjs.undo();
 
           if (!skipRefresh) {
             this.refreshPositionOnBoard();
@@ -616,9 +791,7 @@
 
           this.currIndexInMoveHistory++;
 
-          console.log("Move index: " + this.currIndexInMoveHistory);
-
-          // Get move to play on chessjs instance
+          // Get move to play on boardChessjs instance
           var move = this.moveHistory[this.currIndexInMoveHistory];
 
           if (!skipRefresh) {
@@ -628,8 +801,7 @@
             
           }
 
-          console.log("Playing move " + move);
-          this.chessjs.move(move);
+          this.boardChessjs.move(move);
 
           if (!skipRefresh) {
             this.refreshPositionOnBoard();
@@ -660,7 +832,7 @@
         this.analyzing = true;
         this.engineStatus = 'analyzing';
       },
-
+      /*
       refreshBetterMoves(fen) {
         var pos = _.find(this.positions, (pos) => {
           return pos.fen === fen;
@@ -673,7 +845,8 @@
         } else {
           this.betterMoves = [];
         }
-      },  
+      },
+      */  
 
       refreshPositionOnBoard() {
 
@@ -685,9 +858,9 @@
 
         this.board.removeMarkers();
 
-        var fen = this.chessjs.fen();
-
-        this.refreshBetterMoves(fen);
+        var fen = this.boardChessjs.fen();
+        this.currentFen = fen;
+        //this.refreshBetterMoves(fen);
 
         // Actual played move markers
         setTimeout(() => {
@@ -798,20 +971,21 @@
           var fens = this.pgnMoveList.map(function(moveListMove) {
             return moveListMove.fen;
           });
-          console.log("Load verdicts for fens");
+          console.log("Load positions for fens");
           console.log(fens);
 
-          return API.verdict.getVerdicts(fens);
+          return API.position.getPositions(fens);
 
         })
-        .then((verdicts) => {
+        .then((positions) => {
 
-          this.positions = verdicts;
+          this.positions = positions;
           
-          console.warn("Verdicts for this game");
-          console.warn(verdicts);
+          console.warn("Positions for this game");
+          console.warn(positions);
 
-          this.chessjs = new Chess();
+          this.gameChessJs = new Chess();
+          this.boardChessjs = this.gameChessJs; // Start using this instance as board controlling one.
           setTimeout(this.refreshPositionOnBoard.bind(this));
           
 

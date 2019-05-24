@@ -9,7 +9,46 @@ import apiCall from '../apicall'
 const urlprefix = process.env.MIX_LARAVEL_API_PREFIX || 'err-laravel-api-missing';
 
 export default {
-  saveMoveVerdict(verdict, move, fen) {
+  getPositions(fens) {
+    return apiCall(
+      axios.post(urlprefix + '/positions', {
+        fens: fens,
+      },{
+        headers: AuthService.getHeaders()
+      })
+      .then((response) => {
+        return response.data.data;
+      })      
+
+    );        
+  },
+  enableTraining(fen) {
+    return apiCall(
+      axios.post(urlprefix + '/positions/enable-training', {
+        fen: fen
+      },{
+        headers: AuthService.getHeaders()
+      })
+      .then((response) => {
+        return response.data.data;
+      })      
+
+    );  
+  },
+  disableTraining(fen) {
+    return apiCall(
+      axios.post(urlprefix + '/positions/disable-training', {
+        fen: fen
+      },{
+        headers: AuthService.getHeaders()
+      })
+      .then((response) => {
+        return response.data.data;
+      })      
+
+    ); 
+  },
+  saveMoveVerdict(verdict, move, san, fen) {
     /*
     return new Promise((resolve) => {
 
@@ -20,19 +59,21 @@ export default {
     */
 
     return apiCall(
-      axios.post(urlprefix + '/moveverdicts', {
+      axios.post(urlprefix + '/verdicts', {
         fen: fen,
+        san: san,
         verdict: verdict,
         move: move
       },{
         headers: AuthService.getHeaders()
       })
       .then((response) => {
-        return response.data;
+        return response.data.data;
       })      
 
     );     
   },  
+  /*
   saveSuggestedMove(fromto, move, fen) {
 
     return apiCall(
@@ -60,6 +101,7 @@ export default {
       })      
 
     );     
-  }, 
+  },
+  */ 
 }
 

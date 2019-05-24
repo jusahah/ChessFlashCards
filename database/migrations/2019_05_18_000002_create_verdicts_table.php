@@ -17,7 +17,9 @@ class CreateVerdictsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedInteger('user_id')->index();
             $table->unsignedInteger('position_id')->index();
-            $table->string('move', 16);
+            $table->string('move', 8); // a2a4
+            $table->string('san', 12)->nullable(); // Ndxe5+
+            $table->boolean('trainable')->default(true);
 
             // Note! When inserting we first check if same move played earlier has
             // some verdict already! If so, we use that verdict. If not, we use computer analysis
